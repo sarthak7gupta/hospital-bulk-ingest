@@ -1,0 +1,82 @@
+version: '3'
+
+vars:
+  APP_IMAGE: hospital-bulk-processor:latest
+
+tasks:
+  install:
+    desc: Install project and development dependencies with uv and register pre-commit hooks
+    cmds:
+      - uv sync --dev
+      - uv run pre-commit install
+
+  lint:
+    desc: Run ruff linter checks
+    cmds:
+      - uv run ruff check .
+
+  format:
+    desc: Format codebase with ruff formatter
+    cmds:
+      - uv run ruff format .
+
+  typecheck:
+    desc: Run strict mypy type checking across application and tests
+    cmds:
+      - uv run mypy app tests
+
+  test:
+    desc: Run automated test suite with pytest
+    cmds:
+      - uv run pytest tests/ -v --tb=short
+
+  cov:
+    desc: Run test suite with detailed coverage report enforcing 90% minimum coverage
+    cmds:
+      - uv run pytest tests/ -v --tb=short --cov=app --cov-report=term-missing --cov-fail-under=90
+
+  pre-commit:
+    desc: Run all pre-commit hooks across all files
+    cmds:
+      - uv run pre-commit run --all-files
+
+  check:
+    desc: Run all static quality gates (lint, typecheck, test, pre-commit)
+    cmds:
+      - task: lint
+      - task: typecheck
+      - task: test
+      - task: pre-commit
+
+  ci:
+    desc: Run full CI pipeline locally matching GitHub Actions workflow
+    cmds:
+      - uv run ruff format --check .
+      - task: lint
+      - task: typecheck
+      - task: cov
+
+  dev:
+    desc: Start local development server with auto-reload
+    cmds:
+      - uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+  samples:
+    desc: Generate complete suite of sample CSV test datasets
+    cmds:
+      - uv run python -m scripts.generate_samples
+
+  build:
+    desc: Build production multi-stage Docker image
+    cmds:
+      - docker build -t {{.APP_IMAGE}} .
+
+  up:
+    desc: Run application in Docker Compose
+    cmds:
+      - docker compose up --build
+
+  down:
+    desc: Stop Docker Compose services
+    cmds:
+      - docker compose down

@@ -1,0 +1,31 @@
+# Render deployment specification for Hospital Bulk Processor
+# Note: On the Render free instance type, the service spins down after 15 minutes of inactivity.
+# Incoming requests may experience a cold-start delay of 30-50s while the container wakes up.
+
+services:
+  - type: web
+    name: hospital-bulk-processor
+    runtime: python
+    buildCommand: uv sync --frozen --no-dev
+    startCommand: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT --timeout-graceful-shutdown 20
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: DIRECTORY_API_BASE_URL
+        value: https://hospital-directory.onrender.com
+      - key: MAX_CSV_ROWS
+        value: "20"
+      - key: MAX_CONCURRENT_REQUESTS
+        value: "10"
+      - key: REQUEST_TIMEOUT_SECONDS
+        value: "15.0"
+      - key: MAX_ATTEMPTS
+        value: "3"
+      - key: MAX_RETRIES
+        value: "3"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_JSON
+        value: "true"

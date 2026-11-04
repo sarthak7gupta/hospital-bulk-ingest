@@ -1,0 +1,5 @@
+name,address,phone
+Valid Hospital 1,100 Valid St,555-1000
+,Missing Name St,555-2000
+Valid Hospital 2,200 Valid St,555-3000
+Missing Address Hospital,,555-4000
